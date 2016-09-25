@@ -11,6 +11,12 @@ function Player:_updateControls(controls)
       sources = sources,
     }
   end
+  for name, inputs in pairs(controls.axes) do
+    self.axes[name] = {
+      value = 0,
+      inputs = inputs,
+    }
+  end
 end
 
 function Player:_getBinarySources(s)
@@ -47,21 +53,39 @@ function Player:_getAnalogSources(s)
   return 0
 end
 
-function Player:_calculateInput(input)
+function Player:_updateInput(input)
   input._binary = self:_getBinarySources(input.sources)
   input._analog = self:_getAnalogSources(input.sources)
   local v = math.max(input._binary, input._analog)
   input._value = v > self.deadzone and v or 0
 end
 
+function Player:_updateAxis(axis)
+  local n = self.inputs[axis.inputs.negative]
+  local p = self.inputs[axis.inputs.positive]
+  if n._binary == 0 and p._binary == 0 then
+    local v = p._analog - n._analog
+    axis._value = math.abs(v) > self.deadzone and v or 0
+  else
+    axis._value = p._binary - n._binary
+  end
+end
+
 function Player:update()
   for _, input in pairs(self.inputs) do
-    self:_calculateInput(input)
+    self:_updateInput(input)
+  end
+  for _, axis in pairs(self.axes) do
+    self:_updateAxis(axis)
   end
 end
 
 function Player:get(name)
-  if self.inputs[name] then return self.inputs[name]._value end
+  if self.axes[name] then
+    return self.axes[name]._value
+  elseif self.inputs[name] then
+    return self.inputs[name]._value
+  end
   assert(false, 'No input, axis, or pair found with name ' .. name)
 end
 

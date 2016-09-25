@@ -12,10 +12,10 @@ controls = {
     aimDown = {keys = {'down'}, axes = {'righty+'}},
   },
   axes = {
-    moveX = {'moveLeft', 'moveRight'},
-    moveY = {'moveUp', 'moveDown'},
-    aimX = {'aimLeft', 'aimRight'},
-    aimY = {'aimUp', 'aimDown'},
+    moveX = {negative = 'moveLeft', positive = 'moveRight'},
+    moveY = {negative = 'moveUp', positive = 'moveDown'},
+    aimX = {negative = 'aimLeft', positive = 'aimRight'},
+    aimY = {negative = 'aimUp', positive = 'aimDown'},
   },
   pairs = {
     move = {'moveX', 'moveY'},
@@ -36,6 +36,6 @@ function love.keypressed(key)
 end
 
 function love.draw()
-  love.graphics.print(input:get 'moveLeft', 0, 0)
-  love.graphics.print(input:get 'moveRight', 0, 16)
+  love.graphics.print(input:get 'moveX', 0, 0)
+  love.graphics.print(input:get 'moveY', 0, 16)
 end
