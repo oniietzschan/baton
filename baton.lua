@@ -17,6 +17,12 @@ function Player:_updateControls(controls)
       inputs = inputs,
     }
   end
+  for name, axes in pairs(controls.pairs) do
+    self.pairs[name] = {
+      value = 0,
+      axes = axes,
+    }
+  end
 end
 
 function Player:_getBinarySources(s)
@@ -63,11 +69,29 @@ end
 function Player:_updateAxis(axis)
   local n = self.inputs[axis.inputs.negative]
   local p = self.inputs[axis.inputs.positive]
-  if n._binary == 0 and p._binary == 0 then
-    local v = p._analog - n._analog
-    axis._value = math.abs(v) > self.deadzone and v or 0
+  axis._binary = p._binary - n._binary
+  axis._analog = p._analog - n._analog
+  if axis._binary == 0 then
+    axis._value = math.abs(axis._analog) > self.deadzone and axis._analog or 0
   else
-    axis._value = p._binary - n._binary
+    axis._value = axis._binary
+  end
+end
+
+function Player:_updatePair(pair)
+  local x = self.axes[pair.axes.x]
+  local y = self.axes[pair.axes.y]
+  if x._binary == 0 and y._binary == 0 then
+    local value = {x = x._analog, y = y._analog}
+    local length = (value.x^2 + value.y^2)^.5
+    pair._value = length > self.deadzone and value or {x = 0, y = 0}
+  else
+    pair._value = {x = x._binary, y = y._binary}
+  end
+  local length = (pair._value.x^2 + pair._value.y^2)^.5
+  if length > 1 then
+    pair._value.x = pair._value.x / length
+    pair._value.y = pair._value.y / length
   end
 end
 
@@ -78,10 +102,15 @@ function Player:update()
   for _, axis in pairs(self.axes) do
     self:_updateAxis(axis)
   end
+  for _, pair in pairs(self.pairs) do
+    self:_updatePair(pair)
+  end
 end
 
 function Player:get(name)
-  if self.axes[name] then
+  if self.pairs[name] then
+    return self.pairs[name]._value.x, self.pairs[name]._value.y
+  elseif self.axes[name] then
     return self.axes[name]._value
   elseif self.inputs[name] then
     return self.inputs[name]._value

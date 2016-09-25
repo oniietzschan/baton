@@ -2,24 +2,17 @@ local baton = require 'baton'
 
 controls = {
   inputs = {
-    moveLeft = {scancodes = {'a'}, axes = {'leftx-'}},
-    moveRight = {scancodes = {'d'}, axes = {'leftx+'}},
-    moveUp = {scancodes = {'w'}, axes = {'lefty-'}},
-    moveDown = {scancodes = {'s'}, axes = {'lefty+'}},
-    aimLeft = {keys = {'left'}, axes = {'rightx-'}},
-    aimRight = {keys = {'right'}, axes = {'rightx+'}},
-    aimUp = {keys = {'up'}, axes = {'righty-'}},
-    aimDown = {keys = {'down'}, axes = {'righty+'}},
+    left = {keys = {'left'}, axes = {'leftx-'}},
+    right = {keys = {'right'}, axes = {'leftx+'}},
+    up = {keys = {'up'}, axes = {'lefty-'}},
+    down = {keys = {'down'}, axes = {'lefty+'}},
   },
   axes = {
-    moveX = {negative = 'moveLeft', positive = 'moveRight'},
-    moveY = {negative = 'moveUp', positive = 'moveDown'},
-    aimX = {negative = 'aimLeft', positive = 'aimRight'},
-    aimY = {negative = 'aimUp', positive = 'aimDown'},
+    horizontal = {negative = 'left', positive = 'right'},
+    vertical = {negative = 'up', positive = 'down'},
   },
   pairs = {
-    move = {'moveX', 'moveY'},
-    aim = {'aimX', 'aimY'}
+    main = {x = 'horizontal', y = 'vertical'},
   }
 }
 
@@ -36,6 +29,25 @@ function love.keypressed(key)
 end
 
 function love.draw()
-  love.graphics.print(input:get 'moveX', 0, 0)
-  love.graphics.print(input:get 'moveY', 0, 16)
+  love.graphics.setColor(255, 255, 255)
+  love.graphics.line(0, 300, 800, 300)
+  love.graphics.line(400, 0, 400, 600)
+  love.graphics.rectangle('line', 200, 100, 400, 400)
+  love.graphics.rectangle('line', 300, 200, 200, 200)
+  love.graphics.circle('line', 400, 300, 100)
+  love.graphics.circle('line', 400, 300, 200)
+
+  love.graphics.setColor(84, 214, 227)
+  love.graphics.circle('fill', 400 - 200*input:get 'left', 300, 8)
+  love.graphics.circle('fill', 400 + 200*input:get 'right', 300, 8)
+  love.graphics.circle('fill', 400, 300 - 200*input:get 'up', 8)
+  love.graphics.circle('fill', 400, 300 + 200*input:get 'down', 8)
+
+  love.graphics.setColor(207, 205, 74)
+  love.graphics.circle('fill', 400 + 200*input:get 'horizontal', 300, 8)
+  love.graphics.circle('fill', 400, 300 + 200*input:get 'vertical', 8)
+
+  love.graphics.setColor(205, 92, 204)
+  x, y = input:get 'main'
+  love.graphics.circle('fill', 400 + 200*x, 300 + 200*y, 8)
 end
