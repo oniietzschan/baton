@@ -21,19 +21,19 @@ local sourceFunction = {}
 
 function sourceFunction.key(key)
   return function()
-    return love.keyboard.isDown(key) and 1 or 0
+    return love.keyboard.isDown(key) and 1 or 0, 'keyboard'
   end
 end
 
 function sourceFunction.sc(scancode)
   return function()
-    return love.keyboard.isScancodeDown(scancode) and 1 or 0
+    return love.keyboard.isScancodeDown(scancode) and 1 or 0, 'keyboard'
   end
 end
 
 function sourceFunction.mouse(button)
   return function()
-    return love.mouse.isDown(tonumber(button)) and 1 or 0
+    return love.mouse.isDown(tonumber(button)) and 1 or 0, 'mouse'
   end
 end
 
@@ -46,9 +46,9 @@ function sourceFunction.axis(value)
       local v = tonumber(axis) and self.joystick:getAxis(tonumber(axis))
                                 or self.joystick:getGamepadAxis(axis)
       v = v * direction
-      return v > 0 and v or 0
+      return v > 0 and v or 0, 'joystick'
     end
-    return 0
+    return 0, 'joystick'
   end
 end
 
@@ -56,12 +56,12 @@ function sourceFunction.button(button)
   return function(self)
     if self.joystick then
       if tonumber(button) then
-        return self.joystick:isDown(tonumber(button)) and 1 or 0
+        return self.joystick:isDown(tonumber(button)) and 1 or 0, 'joystick'
       else
-        return self.joystick:isGamepadDown(button) and 1 or 0
+        return self.joystick:isGamepadDown(button) and 1 or 0, 'joystick'
       end
     end
-    return 0
+    return 0, 'joystick'
   end
 end
 
@@ -122,7 +122,9 @@ end
 
 function Player:_getBinarySources(input)
   for i = 1, #input._binarySources do
-    if input._binarySources[i](self) == 1 then
+    local value, device = input._binarySources[i](self)
+    if value == 1 then
+      self._lastUsedBinary = device
       return 1
     end
   end
@@ -142,7 +144,13 @@ function Player:_processInput(input)
   input._binary = self:_getBinarySources(input)
   input._analog = self:_getAnalogSources(input)
   local v = math.max(input._binary, input._analog)
-  input._value = v > self.deadzone and v or 0
+  if v > self.deadzone then
+    self.lastUsed = input._binary > input._analog and self._lastUsedBinary
+                                                   or 'joystick'
+    input._value = v
+  else
+    input._value = 0
+  end
   input.downPrevious = input.downCurrent
   input.downCurrent = input._value ~= 0
 end

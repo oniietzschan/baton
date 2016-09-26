@@ -6,6 +6,7 @@ controls = {
     right = {'key:right', 'axis:leftx+'},
     up = {'key:up', 'axis:lefty-'},
     down = {'key:down', 'axis:lefty+'},
+    primary = {'mouse:1', 'button:a'},
   },
   axes = {
     horizontal = {negative = 'left', positive = 'right'},
@@ -38,6 +39,9 @@ end
 
 function love.draw()
   love.graphics.setColor(255, 255, 255)
+
+  love.graphics.print(tostring(input.lastUsed), 0, 0)
+
   love.graphics.line(0, 300, 800, 300)
   love.graphics.line(400, 0, 400, 600)
   love.graphics.rectangle('line', 200, 100, 400, 400)
