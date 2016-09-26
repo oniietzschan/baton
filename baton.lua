@@ -103,16 +103,16 @@ function Player:_updateControls(controls)
     addSources(self.inputs[name], sources)
   end
   for name, inputs in pairs(controls.axes) do
-    self.axes[name] = {
-      value = 0,
-      inputs = inputs,
-    }
+    if not self.axes[name] then
+      self.axes[name] = {value = 0}
+    end
+    self.axes[name].inputs = inputs
   end
   for name, axes in pairs(controls.pairs) do
-    self.pairs[name] = {
-      value = 0,
-      axes = axes,
-    }
+    if not self.pairs[name] then
+      self.pairs[name] = {value = 0}
+    end
+    self.pairs[name].axes = axes
   end
 end
 
