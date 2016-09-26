@@ -98,7 +98,11 @@ end
 function Player:_updateControls(controls)
   for name, sources in pairs(controls.inputs) do
     if not self.inputs[name] then
-      self.inputs[name] = {value = 0}
+      self.inputs[name] = {
+        value = 0,
+        downPrevious = false,
+        downCurrent = false,
+      }
     end
     addSources(self.inputs[name], sources)
   end
@@ -139,6 +143,8 @@ function Player:_processInput(input)
   input._analog = self:_getAnalogSources(input)
   local v = math.max(input._binary, input._analog)
   input._value = v > self.deadzone and v or 0
+  input.downPrevious = input.downCurrent
+  input.downCurrent = input._value ~= 0
 end
 
 function Player:_processAxis(axis)
@@ -183,6 +189,24 @@ function Player:get(name)
     return self.inputs[name]._value
   end
   assert(false, 'No input, axis, or pair found with name ' .. name)
+end
+
+function Player:down(name)
+  local input = self.inputs[name]
+  assert(input, 'No input found with name ' .. name)
+  return input.downCurrent
+end
+
+function Player:pressed(name)
+  local input = self.inputs[name]
+  assert(input, 'No input found with name ' .. name)
+  return input.downCurrent and not input.downPrevious
+end
+
+function Player:released(name)
+  local input = self.inputs[name]
+  assert(input, 'No input found with name ' .. name)
+  return input.downPrevious and not input.downCurrent
 end
 
 function baton.newPlayer(...)

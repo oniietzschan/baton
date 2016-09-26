@@ -22,6 +22,14 @@ end
 
 function love.update()
   input:update()
+  for _, name in pairs {'left', 'right', 'up', 'down'} do
+    if input:pressed(name) then
+      print('pressed: ' .. name)
+    end
+    if input:released(name) then
+      print('released: ' .. name)
+    end
+  end
 end
 
 function love.keypressed(key)
