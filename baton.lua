@@ -38,6 +38,8 @@ function sourceFunction.mouse(button)
 end
 
 function sourceFunction.axis(value)
+  -- this doesn't return a device because I assume that any analog input
+  -- is from a joystick/gamepad
   local axis, direction = value:match '(.+)([%+%-])'
   if direction == '+' then direction = 1 end
   if direction == '-' then direction = -1 end
@@ -46,9 +48,9 @@ function sourceFunction.axis(value)
       local v = tonumber(axis) and self.joystick:getAxis(tonumber(axis))
                                 or self.joystick:getGamepadAxis(axis)
       v = v * direction
-      return v > 0 and v or 0, 'joystick'
+      return v > 0 and v or 0
     end
-    return 0, 'joystick'
+    return 0
   end
 end
 
