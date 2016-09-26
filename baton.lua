@@ -38,7 +38,7 @@ function sourceFunction.mouse(button)
 end
 
 function sourceFunction.axis(value)
-  local axis, direction = value:match '(.+)%s*([%+%-])'
+  local axis, direction = value:match '(.+)*([%+%-])'
   if direction == '+' then direction = 1 end
   if direction == '-' then direction = -1 end
   return function(self)
