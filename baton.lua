@@ -1,15 +1,73 @@
 local baton = {}
 
-local source = {}
+local sourceFunction = {}
+
+function sourceFunction.key(key)
+  return function()
+    return love.keyboard.isDown(key) and 1 or 0
+  end
+end
+
+function sourceFunction.sc(scancode)
+  return function()
+    return love.keyboard.isScancodeDown(scancode) and 1 or 0
+  end
+end
+
+function sourceFunction.mouse(button)
+  return function()
+    return love.mouse.isDown(tonumber(button)) and 1 or 0
+  end
+end
+
+function sourceFunction.axis(value)
+  local axis, direction = value:match '(.+)%s*([%+%-])'
+  if direction == '+' then direction = 1 end
+  if direction == '-' then direction = -1 end
+  return function(self)
+    if self.joystick then
+      local v = tonumber(axis) and self.joystick:getAxis(tonumber(axis))
+                                or self.joystick:getGamepadAxis(axis)
+      v = v * direction
+      return v > 0 and v or 0
+    end
+    return 0
+  end
+end
+
+function sourceFunction.button(button)
+  return function(self)
+    if self.joystick then
+      if tonumber(button) then
+        return self.joystick:isDown(tonumber(button)) and 1 or 0
+      else
+        return self.joystick:isGamepadDown(button) and 1 or 0
+      end
+    end
+    return 0
+  end
+end
 
 local Player = {}
 
 function Player:_updateControls(controls)
   for name, sources in pairs(controls.inputs) do
-    self.inputs[name] = {
-      value = 0,
-      sources = sources,
-    }
+    if not self.inputs[name] then
+      self.inputs[name] = {value = 0}
+    end
+    local input = self.inputs[name]
+    input._binarySources = {}
+    input._analogSources = {}
+    for i = 1, #sources do
+      local source = sources[i]
+      local type, value = source:match '(.*):(.*)'
+      assert(sourceFunction[type], type .. 'is not a valid input source')
+      if type == 'axis' then
+        table.insert(input._analogSources, sourceFunction[type](value))
+      else
+        table.insert(input._binarySources, sourceFunction[type](value))
+      end
+    end
   end
   for name, inputs in pairs(controls.axes) do
     self.axes[name] = {
@@ -25,43 +83,21 @@ function Player:_updateControls(controls)
   end
 end
 
-function Player:_getBinarySources(s)
-  if s.keys and love.keyboard.isDown(unpack(s.keys)) then
-    return 1
-  end
-  if s.scancodes and love.keyboard.isScancodeDown(unpack(s.scancodes)) then
-    return 1
-  end
-  if s.mouseButtons and love.mouse.isDown(unpack(s.mouseButtons)) then
-    return 1
-  end
-  if self.joystick then
-    if s.buttons and self.joystick:isGamepadDown(unpack(s.buttons)) then
-      input._binary = 1
-    end
-  end
-  return 0
-end
-
-function Player:_getAnalogSources(s)
-  if self.joystick then
-    -- TODO: figure out what should happen if multiple axes are mapped
-    -- to one control (or if that should even be allowed)
-    if s.axes then
-      local axis, direction = s.axes[1]:match('(.*)(.)')
-      if direction == '+' then direction = 1 end
-      if direction == '-' then direction = -1 end
-      local value = self.joystick:getGamepadAxis(axis)
-      value = value * direction
-      if value > 0 then return value end
-    end
-  end
-  return 0
-end
-
 function Player:_updateInput(input)
-  input._binary = self:_getBinarySources(input.sources)
-  input._analog = self:_getAnalogSources(input.sources)
+  input._binary = 0
+  for i = 1, #input._binarySources do
+    if input._binarySources[i](self) == 1 then
+      input._binary = 1
+      break
+    end
+  end
+
+  input._analog = 0
+  for i = 1, #input._analogSources do
+    input._analog = input._analog + input._analogSources[i](self)
+  end
+  if input._analog > 1 then input._analog = 1 end
+
   local v = math.max(input._binary, input._analog)
   input._value = v > self.deadzone and v or 0
 end

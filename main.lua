@@ -2,10 +2,10 @@ local baton = require 'baton'
 
 controls = {
   inputs = {
-    left = {keys = {'left'}, axes = {'leftx-'}},
-    right = {keys = {'right'}, axes = {'leftx+'}},
-    up = {keys = {'up'}, axes = {'lefty-'}},
-    down = {keys = {'down'}, axes = {'lefty+'}},
+    left = {'key:left', 'axis:leftx-'},
+    right = {'key:right', 'axis:leftx+'},
+    up = {'key:up', 'axis:lefty-'},
+    down = {'key:down', 'axis:lefty+'},
   },
   axes = {
     horizontal = {negative = 'left', positive = 'right'},
