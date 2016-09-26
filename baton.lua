@@ -79,7 +79,7 @@ function Player:_init(controls, joystick)
   self.pairs = {}
   self.joystick = joystick
   self.deadzone = .5
-  self:_updateControls(controls)
+  self:updateControls(controls)
 end
 
 local function addSources(input, sources)
@@ -94,31 +94,6 @@ local function addSources(input, sources)
     else
       table.insert(input._binarySources, sourceFunction[type](value))
     end
-  end
-end
-
-function Player:_updateControls(controls)
-  for name, sources in pairs(controls.inputs) do
-    if not self.inputs[name] then
-      self.inputs[name] = {
-        value = 0,
-        downPrevious = false,
-        downCurrent = false,
-      }
-    end
-    addSources(self.inputs[name], sources)
-  end
-  for name, inputs in pairs(controls.axes) do
-    if not self.axes[name] then
-      self.axes[name] = {value = 0}
-    end
-    self.axes[name].inputs = inputs
-  end
-  for name, axes in pairs(controls.pairs) do
-    if not self.pairs[name] then
-      self.pairs[name] = {value = 0}
-    end
-    self.pairs[name].axes = axes
   end
 end
 
@@ -183,6 +158,31 @@ function Player:_processPair(pair)
 end
 
 --public API
+
+function Player:updateControls(controls)
+  for name, sources in pairs(controls.inputs) do
+    if not self.inputs[name] then
+      self.inputs[name] = {
+        value = 0,
+        downPrevious = false,
+        downCurrent = false,
+      }
+    end
+    addSources(self.inputs[name], sources)
+  end
+  for name, inputs in pairs(controls.axes) do
+    if not self.axes[name] then
+      self.axes[name] = {value = 0}
+    end
+    self.axes[name].inputs = inputs
+  end
+  for name, axes in pairs(controls.pairs) do
+    if not self.pairs[name] then
+      self.pairs[name] = {value = 0}
+    end
+    self.pairs[name].axes = axes
+  end
+end
 
 function Player:update()
   for _, input in pairs(self.inputs) do self:_processInput(input) end
